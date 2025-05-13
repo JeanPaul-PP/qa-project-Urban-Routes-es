@@ -37,6 +37,7 @@ def retrieve_phone_code(driver) -> str:
 
 # Clase, pagina principal, ingresar direcciones y atributo
 class UrbanRoutesPage:
+
     # Localizadores
     from_field = (By.ID, 'from')
     to_field = (By.ID, 'to')
@@ -45,7 +46,7 @@ class UrbanRoutesPage:
     number_phone = (By.CSS_SELECTOR, '.np-button')
     add_number_phone = (By.ID, 'phone')
     next_button = (By.CSS_SELECTOR, '.button.full')
-    code_number_phone = (By.XPATH, '/html/body/div/div/div[1]/div[2]/div[2]/form/div[1]/div[1]/input')
+    code_number_phone = (By.ID, 'code')
     pyment_method = (By.CSS_SELECTOR, '.pp-button.filled')
     add_card = (By.CLASS_NAME, 'pp-row')
     number_card = (By.ID, 'number')
@@ -91,7 +92,9 @@ class UrbanRoutesPage:
         self.driver.find_element(*self.next_button).click()
 
     def set_code_number_phone(self, code):
+
         self.driver.find_element(*self.code_number_phone).send_keys(code)
+        WebDriverWait(self.driver, 63).until(expected_conditions.visibility_of_element_located(self.code_number_phone))
 
 
 class TestUrbanRoutes:
@@ -101,7 +104,12 @@ class TestUrbanRoutes:
     @classmethod
     def setup_class(cls):
         # no lo modifiques, ya que necesitamos un registro adicional habilitado para recuperar el código de confirmación del teléfono
-        from selenium.webdriver import DesiredCapabilities
+
+        #from selenium.webdriver import DesiredCapabilities
+        #capabilities = DesiredCapabilities.CHROME
+        #capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
+        #cls.driver = webdriver.Chrome()
+
         service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')
         cls.driver = webdriver.Chrome(service=service)
 
@@ -130,9 +138,9 @@ class TestUrbanRoutes:
         routes_page.click_number_phone()
         routes_page.set_add_number_phone(data.phone_number)
         routes_page.click_next_button()
-        code = retrieve_phone_code(self.driver)
-        routes_page.set_code_number_phone(code)
 
+        code = retrieve_phone_code(driver=self.driver)
+        routes_page.set_code_number_phone(code)
 
 
 
