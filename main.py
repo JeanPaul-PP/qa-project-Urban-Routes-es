@@ -92,32 +92,7 @@ class UrbanRoutesPage:
 
     def set_code_number_phone(self, code):
         self.driver.find_element(*self.code_number_phone).send_keys(code)
-'''
-    def click_pyment_method(self):
-        self.driver.find_element(*self.pyment_method).click()
 
-    def click_add_card(self):
-        self.driver.find_element(*self.add_card).click()
-
-    def set_number_card(self, card_number):
-        self.driver.find_element(*self.number_card).send_keys(card_number)
-
-    def set_code_card(self, card_code):
-        self.driver.find_element(*self.code_card).send_keys(card_code)
-
-    def click_add_button(self):
-        self.driver.find_element(*self.add_button).click()
-
-    def set_message(self, message_for_driver):
-        self.driver.find_element(*self.message).send_keys(message_for_driver)
-
-    def click_ask_for_blanket(self):
-        self.driver.find_element(*self.ask_for_blanket).click()
-
-    def click_add_ice_cream(self):
-        self.driver.find_element(*self.add_ice_cream).click()
-        self.driver.find_element(*self.add_ice_cream).click()
-'''
 
 class TestUrbanRoutes:
 
