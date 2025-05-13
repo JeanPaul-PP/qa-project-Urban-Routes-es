@@ -1,10 +1,12 @@
-import data
+import time
+from sys import executable
+
 from selenium import webdriver
-from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
-
+import data
+from selenium.webdriver.chrome.service import Service
 
 # no modificar
 def retrieve_phone_code(driver) -> str:
@@ -33,19 +35,35 @@ def retrieve_phone_code(driver) -> str:
                             "Utiliza 'retrieve_phone_code' solo después de haber solicitado el código en tu aplicación.")
         return code
 
-
+# Clase, pagina principal, ingresar direcciones y atributo
 class UrbanRoutesPage:
+    # Localizadores
     from_field = (By.ID, 'from')
     to_field = (By.ID, 'to')
+    request_taxi_button = (By.CSS_SELECTOR, '.button.round')
+    tariff_comfort = (By.XPATH, '//div[@class="tariff-cards"]/div[5]')
+    number_phone = (By.CSS_SELECTOR, '.np-button')
+    add_number_phone = (By.ID, 'phone')
+    next_button = (By.CSS_SELECTOR, '.button.full')
+    code_number_phone = (By.XPATH, '/html/body/div/div/div[1]/div[2]/div[2]/form/div[1]/div[1]/input')
+    pyment_method = (By.CSS_SELECTOR, '.pp-button.filled')
+    add_card = (By.CLASS_NAME, 'pp-row')
+    number_card = (By.ID, 'number')
+    code_card = (By.ID, 'code')
+    add_button = (By.CSS_SELECTOR, '.button.full.disabled')
+    message = (By.CLASS_NAME, 'input-container')
+    ask_for_blanket = (By.CSS_SELECTOR, '.slider.round')
+    add_ice_cream = (By.CLASS_NAME, 'counter-plus')
 
+    # Constructor
     def __init__(self, driver):
         self.driver = driver
 
-    def set_from(self, from_address):
-        self.driver.find_element(*self.from_field).send_keys(from_address)
+    def set_from(self, address_from):
+        self.driver.find_element(*self.from_field).send_keys(address_from)
 
-    def set_to(self, to_address):
-        self.driver.find_element(*self.to_field).send_keys(to_address)
+    def set_to(self, address_to):
+        self.driver.find_element(*self.to_field).send_keys(address_to)
 
     def get_from(self):
         return self.driver.find_element(*self.from_field).get_property('value')
@@ -53,7 +71,53 @@ class UrbanRoutesPage:
     def get_to(self):
         return self.driver.find_element(*self.to_field).get_property('value')
 
+    def set_route(self, address_from, address_to):
+        self.set_from(address_from)
+        self.set_to(address_to)
 
+    def click_request_taxi_button(self):
+        self.driver.find_element(*self.request_taxi_button).click()
+
+    def click_tariff_comfort(self):
+        self.driver.find_element(*self.tariff_comfort).click()
+
+    def click_number_phone(self):
+         self.driver.find_element(*self.number_phone).click()
+
+    def set_add_number_phone(self, phone_number):
+        self.driver.find_element(*self.add_number_phone).send_keys(phone_number)
+
+    def click_next_button(self):
+        self.driver.find_element(*self.next_button).click()
+
+    def set_code_number_phone(self, code):
+        self.driver.find_element(*self.code_number_phone).send_keys(code)
+'''
+    def click_pyment_method(self):
+        self.driver.find_element(*self.pyment_method).click()
+
+    def click_add_card(self):
+        self.driver.find_element(*self.add_card).click()
+
+    def set_number_card(self, card_number):
+        self.driver.find_element(*self.number_card).send_keys(card_number)
+
+    def set_code_card(self, card_code):
+        self.driver.find_element(*self.code_card).send_keys(card_code)
+
+    def click_add_button(self):
+        self.driver.find_element(*self.add_button).click()
+
+    def set_message(self, message_for_driver):
+        self.driver.find_element(*self.message).send_keys(message_for_driver)
+
+    def click_ask_for_blanket(self):
+        self.driver.find_element(*self.ask_for_blanket).click()
+
+    def click_add_ice_cream(self):
+        self.driver.find_element(*self.add_ice_cream).click()
+        self.driver.find_element(*self.add_ice_cream).click()
+'''
 
 class TestUrbanRoutes:
 
@@ -63,12 +127,12 @@ class TestUrbanRoutes:
     def setup_class(cls):
         # no lo modifiques, ya que necesitamos un registro adicional habilitado para recuperar el código de confirmación del teléfono
         from selenium.webdriver import DesiredCapabilities
-        capabilities = DesiredCapabilities.CHROME
-        capabilities["goog:loggingPrefs"] = {'performance': 'ALL'}
-        cls.driver = webdriver.Chrome(desired_capabilities=capabilities)
+        service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')
+        cls.driver = webdriver.Chrome(service=service)
 
     def test_set_route(self):
         self.driver.get(data.urban_routes_url)
+        self.driver.implicitly_wait(10)
         routes_page = UrbanRoutesPage(self.driver)
         address_from = data.address_from
         address_to = data.address_to
@@ -76,7 +140,28 @@ class TestUrbanRoutes:
         assert routes_page.get_from() == address_from
         assert routes_page.get_to() == address_to
 
+    def test_request_taxi(self):
+        #self.driver.implicitly_wait(5)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.click_request_taxi_button()
+
+    def test_click_tariff_comfort(self):
+        #self.driver.implicitly_wait(5)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.click_tariff_comfort()
+
+    def test_number_phone(self):
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.click_number_phone()
+        routes_page.set_add_number_phone(data.phone_number)
+        routes_page.click_next_button()
+        code = retrieve_phone_code(self.driver)
+        routes_page.set_code_number_phone(code)
+
+
+
 
     @classmethod
     def teardown_class(cls):
+        time.sleep(2)
         cls.driver.quit()
