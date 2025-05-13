@@ -52,12 +52,14 @@ class UrbanRoutesPage:
     pyment_method = (By.CLASS_NAME, 'pp-text')
     add_card = (By.CLASS_NAME, 'pp-plus-container')
     number_card = (By.ID, 'number')
-    code_card = (By.ID, 'code')
+    code_card = (By.NAME, 'code')
     click = (By.CSS_SELECTOR, '.plc')
+    click_add = (By.XPATH, '//*[@id="root"]/div/div[2]/div[2]/div[1]/button')
     add_button = (By.XPATH, '//button[contains(text(), "Agregar")]')
-    message = (By.XPATH, '//*[contains(text(), "Mensaje para el conductor")]')
+    message = (By.ID, 'comment')
     ask_for_blanket = (By.CSS_SELECTOR, '.slider.round')
     add_ice_cream = (By.CLASS_NAME, 'counter-plus')
+    reserver = (By.CSS_SELECTOR, '.smart-button')
 
     # Constructor
     def __init__(self, driver):
@@ -79,28 +81,45 @@ class UrbanRoutesPage:
         self.set_from(address_from)
         self.set_to(address_to)
 
-    def click_request_taxi_button(self):
-        self.driver.find_element(*self.request_taxi_button).click()
-
+    # Pedir un taxi y seleciccionar Tarifa Comfort
     def click_tariff_comfort(self):
+        self.driver.find_element(*self.request_taxi_button).click()
         self.driver.find_element(*self.tariff_comfort).click()
 
-    def click_number_phone(self):
-         self.driver.find_element(*self.number_phone).click()
-
+    # Agregar numero de telefono
     def set_add_number_phone(self, phone_number):
+        self.driver.find_element(*self.number_phone).click()
         self.driver.find_element(*self.add_number_phone).send_keys(phone_number)
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.next_button)).click()
 
-    def click_next_button(self):
-        self.driver.find_element(*self.next_button).click()
-
+    # Ingresar numero de confirmacion
     def set_code_number_phone(self, code):
-        WebDriverWait(self.driver, 63).until(EC.visibility_of_element_located(self.code_number_phone)).send_keys(code)
-      #  self.driver.find_element(*self.code_number_phone).send_keys(code)
-
-    def click_button_confirm(self):
+        self.driver.find_element(*self.code_number_phone).send_keys(code)
         self.driver.find_element(*self.button_confirm).click()
 
+    # Seleccionar metodo de pago
+    def set_pyment_method(self):
+        self.driver.find_element(*self.pyment_method).click()
+        self.driver.find_element(*self.add_card).click()
+
+    # Agregar numero de tarjeta
+    def set_add_card(self, card_number):
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.number_card)).send_keys(card_number)
+
+    # Agregar codigo de tarjeta
+    def set_code_card(self, card_code):
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.code_card)).send_keys(card_code)
+        self.driver.find_element(*self.click).click()
+        self.driver.find_element(*self.add_button).click()
+        self.driver.find_element(*self.click_add).click()
+
+    # Mensaje y Requisitos del pedido
+    def set_message(self, message_for_driver):
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.message)).send_keys(message_for_driver)
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.ask_for_blanket)).click()
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.add_ice_cream)).click()
+        WebDriverWait(self.driver, 4).until(EC.visibility_of_element_located(self.add_ice_cream)).click()
+        self.driver.find_element(*self.reserver).click()
 
 class TestUrbanRoutes:
 
@@ -114,7 +133,7 @@ class TestUrbanRoutes:
         #capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
         #cls.driver = webdriver.Chrome()
     def setup_class(cls):
-        service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')  # Ajusta si cambia la ruta
+        service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')
 
         chrome_options = Options()
         chrome_options.set_capability("goog:loggingPrefs", {'performance': 'ALL'})
@@ -134,24 +153,35 @@ class TestUrbanRoutes:
         assert routes_page.get_from() == address_from
         assert routes_page.get_to() == address_to
 
-    def test_request_taxi(self):
-        routes_page = UrbanRoutesPage(self.driver)
-        routes_page.click_request_taxi_button()
-
     def test_click_tariff_comfort(self):
         routes_page = UrbanRoutesPage(self.driver)
         routes_page.click_tariff_comfort()
 
     def test_number_phone(self):
         routes_page = UrbanRoutesPage(self.driver)
-        routes_page.click_number_phone()
         routes_page.set_add_number_phone(data.phone_number)
-        routes_page.click_next_button()
         code = retrieve_phone_code(self.driver)
         routes_page.set_code_number_phone(code)
+
+    def test_set_pyment_method(self):
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_pyment_method()
+
+    def test_set_add_card(self):
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_add_card(data.card_number)
+
+    def test_set_code_card(self):
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_code_card(data.card_code)
+
+    def test_message(self):
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_message(data.message_for_driver)
+
 
 
     @classmethod
     def teardown_class(cls):
-        time.sleep(5)
+        time.sleep(30)
         cls.driver.quit()
