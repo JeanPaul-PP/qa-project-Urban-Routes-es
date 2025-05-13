@@ -3,10 +3,11 @@ from sys import executable
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import data
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 # no modificar
 def retrieve_phone_code(driver) -> str:
@@ -35,7 +36,7 @@ def retrieve_phone_code(driver) -> str:
                             "Utiliza 'retrieve_phone_code' solo después de haber solicitado el código en tu aplicación.")
         return code
 
-# Clase, pagina principal, ingresar direcciones y atributo
+# Clase pagina principal, ingresar direcciones y atributo
 class UrbanRoutesPage:
 
     # Localizadores
@@ -47,13 +48,14 @@ class UrbanRoutesPage:
     add_number_phone = (By.ID, 'phone')
     next_button = (By.CSS_SELECTOR, '.button.full')
     code_number_phone = (By.ID, 'code')
-    button_confirm = (By.LINK_TEXT, 'Confirmar')
+    button_confirm = (By.XPATH, '//*[contains(text(), "Confirmar")]')
     pyment_method = (By.CLASS_NAME, 'pp-text')
     add_card = (By.CLASS_NAME, 'pp-plus-container')
     number_card = (By.ID, 'number')
     code_card = (By.ID, 'code')
-    add_button = (By.CSS_SELECTOR, '.button.full.disabled')
-    message = (By.CLASS_NAME, 'input-container')
+    click = (By.CSS_SELECTOR, '.plc')
+    add_button = (By.XPATH, '//button[contains(text(), "Agregar")]')
+    message = (By.XPATH, '//*[contains(text(), "Mensaje para el conductor")]')
     ask_for_blanket = (By.CSS_SELECTOR, '.slider.round')
     add_ice_cream = (By.CLASS_NAME, 'counter-plus')
 
@@ -93,8 +95,8 @@ class UrbanRoutesPage:
         self.driver.find_element(*self.next_button).click()
 
     def set_code_number_phone(self, code):
-        WebDriverWait(self.driver, 63).until(expected_conditions.visibility_of_element_located(self.code_number_phone))
-        self.driver.find_element(*self.code_number_phone).send_keys(code)
+        WebDriverWait(self.driver, 63).until(EC.visibility_of_element_located(self.code_number_phone)).send_keys(code)
+      #  self.driver.find_element(*self.code_number_phone).send_keys(code)
 
     def click_button_confirm(self):
         self.driver.find_element(*self.button_confirm).click()
@@ -105,15 +107,22 @@ class TestUrbanRoutes:
     driver = None
 
     @classmethod
-    def setup_class(cls):
+    #def setup_class(cls):
         # no lo modifiques, ya que necesitamos un registro adicional habilitado para recuperar el código de confirmación del teléfono
         #from selenium.webdriver import DesiredCapabilities
         #capabilities = DesiredCapabilities.CHROME
         #capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
         #cls.driver = webdriver.Chrome()
+    def setup_class(cls):
+        service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')  # Ajusta si cambia la ruta
 
-        service = Service('/home/JP/Downloads/WebDriver/bin/chromedriver')
-        cls.driver = webdriver.Chrome(service=service)
+        chrome_options = Options()
+        chrome_options.set_capability("goog:loggingPrefs", {'performance': 'ALL'})
+
+        cls.driver = webdriver.Chrome(service=service, options=chrome_options)
+        cls.driver.implicitly_wait(10)
+        cls.driver.maximize_window()
+
 
     def test_set_route(self):
         self.driver.get(data.urban_routes_url)
@@ -138,12 +147,11 @@ class TestUrbanRoutes:
         routes_page.click_number_phone()
         routes_page.set_add_number_phone(data.phone_number)
         routes_page.click_next_button()
-        code = retrieve_phone_code(driver=self.driver)
+        code = retrieve_phone_code(self.driver)
         routes_page.set_code_number_phone(code)
-
 
 
     @classmethod
     def teardown_class(cls):
-        time.sleep(2)
+        time.sleep(5)
         cls.driver.quit()
