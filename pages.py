@@ -89,9 +89,11 @@ class UrbanRoutesPage:
     def set_message(self, message_for_driver):
         WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(self.message)).send_keys(message_for_driver)
 
+    # Añadir manta
     def set_ask(self):
         WebDriverWait(self.driver, 5).until(EC.visibility_of_element_located(self.ask_for_blanket)).click()
 
+    # Añadir 2 helados
     def add_ice(self):
         element = self.driver.find_element(*self.add_ice_cream)
         ActionChains(self.driver).double_click(element).perform()
